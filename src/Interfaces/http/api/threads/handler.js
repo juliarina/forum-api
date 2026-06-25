@@ -1,0 +1,82 @@
+import AddThreadUseCase from '../../../../Applications/use_case/AddThreadUseCase.js';
+import AddCommentUseCase from '../../../../Applications/use_case/AddCommentUseCase.js';
+import DeleteCommentUseCase from '../../../../Applications/use_case/DeleteCommentUseCase.js';
+import GetThreadUseCase from '../../../../Applications/use_case/GetThreadUseCase.js';
+
+class ThreadsHandler {
+  constructor(container) {
+    this._container = container;
+
+    this.postThreadHandler = this.postThreadHandler.bind(this);
+    this.postCommentHandler = this.postCommentHandler.bind(this);
+    this.deleteCommentHandler = this.deleteCommentHandler.bind(this);
+    this.getThreadHandler = this.getThreadHandler.bind(this);
+  }
+
+  async postThreadHandler(req, res, next) {
+    try {
+      const { id: owner } = req.user;
+      const addThreadUseCase = this._container.getInstance(AddThreadUseCase.name);
+      const addedThread = await addThreadUseCase.execute({ owner, ...req.body });
+
+      res.status(201).json({
+        status: 'success',
+        data: {
+          addedThread,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async postCommentHandler(req, res, next) {
+    try {
+      const { threadId } = req.params;
+      const { id: owner } = req.user;
+      const addCommentUseCase = this._container.getInstance(AddCommentUseCase.name);
+      const addedComment = await addCommentUseCase.execute({ threadId, owner, ...req.body });
+
+      res.status(201).json({
+        status: 'success',
+        data: {
+          addedComment,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteCommentHandler(req, res, next) {
+    try {
+      const { threadId, commentId } = req.params;
+      const { id: user } = req.user;
+      const deleteCommentUseCase = this._container.getInstance(DeleteCommentUseCase.name);
+      await deleteCommentUseCase.execute({ threadId, id: commentId, user });
+
+      res.status(200).json({
+        status: 'success',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getThreadHandler(req, res, next) {
+    try {
+      const { threadId } = req.params;
+      const getThreadUseCase = this._container.getInstance(GetThreadUseCase.name);
+      const thread = await getThreadUseCase.execute(threadId);
+
+      res.status(200).json({
+        status: 'success',
+        data: thread,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default ThreadsHandler;
