@@ -15,6 +15,9 @@ const createServer = async (container) => {
   app.use('/users', users(container));
   app.use('/authentications', authentications(container));
   app.use('/threads', threads(container));
+  app.get('/', (req, res) => {
+    res.status(200).json({ data: 'Hello world!' });
+  });
 
   // Global error handler
   app.use((error, req, res, next) => {
